@@ -10,9 +10,10 @@ import (
 )
 
 type NowPlaying struct {
-	SongName  string `json:"song_name"`
-	Artist    string `json:"artist"`
-	Timestamp string `json:"timestamp"`
+	SongName         string `json:"song_name"`
+	Artist           string `json:"artist"`
+	CurrentTimestamp string `json:"current_timestamp"`
+	EndTimestamp     string `json:"end_timestamp"`
 }
 
 var songs = []string{"Bohemian Rhapsody", "Stairway to Heaven", "Imagine", "Smells Like Teen Spirit", "Billie Jean"}
@@ -24,7 +25,7 @@ func main() {
 	for {
 		track := generateRandomTrack()
 		sendTrackData(track)
-		time.Sleep(5 * time.Second)
+		time.Sleep(1 * time.Second) // Update more frequently
 	}
 }
 
@@ -32,16 +33,17 @@ func generateRandomTrack() NowPlaying {
 	songIndex := rand.Intn(len(songs))
 	artistIndex := rand.Intn(len(artists))
 
-	// Generate a more realistic timestamp
-	now := time.Now()
-	minutes := now.Minute()
-	seconds := now.Second()
-	timestamp := fmt.Sprintf("%02d:%02d", minutes, seconds)
+	totalSeconds := rand.Intn(300) + 60 // Random duration between 1 and 6 minutes
+	currentSeconds := rand.Intn(totalSeconds)
+
+	endTimestamp := fmt.Sprintf("%02d:%02d", totalSeconds/60, totalSeconds%60)
+	currentTimestamp := fmt.Sprintf("%02d:%02d", currentSeconds/60, currentSeconds%60)
 
 	return NowPlaying{
-		SongName:  songs[songIndex],
-		Artist:    artists[artistIndex],
-		Timestamp: timestamp,
+		SongName:         songs[songIndex],
+		Artist:           artists[artistIndex],
+		CurrentTimestamp: currentTimestamp,
+		EndTimestamp:     endTimestamp,
 	}
 }
 
@@ -60,7 +62,7 @@ func sendTrackData(track NowPlaying) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
-		fmt.Printf("Sent: %s by %s (%s)\n", track.SongName, track.Artist, track.Timestamp)
+		fmt.Printf("Sent: %s by %s (%s)\n", track.SongName, track.Artist, track.CurrentTimestamp)
 	} else {
 		fmt.Printf("Failed to send data. Status code: %d\n", resp.StatusCode)
 	}
