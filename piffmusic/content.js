@@ -1,5 +1,5 @@
 function getNowPlaying() {
-    let title = document.querySelector('yt-formatted-string.title.style-scope.ytmusic-player-bar')?.textContent?.trim(); //element.class
+    let title = document.querySelector('yt-formatted-string.title.style-scope.ytmusic-player-bar')?.textContent?.trim();
 
     let artist = document.querySelector('yt-formatted-string.byline.style-scope.ytmusic-player-bar.complex-string')?.textContent?.trim();
 
