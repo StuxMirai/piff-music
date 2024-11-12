@@ -1,0 +1,29 @@
+{
+  "manifest_version": 2,
+  "name": "PiffMusic",
+  "version": "0.1",
+  "description": "Scrapes youtube music for now playing information and sends to local webhook.",
+  "icons": {
+    "48": "icons/stuxpup.png",
+    "96": "icons/stuxpup.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://music.youtube.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+
+  "permissions": [
+    "activeTab",
+    "<all_urls>",
+    "webRequest"
+  ],
+  "browser_specific_settings": {   
+    "gecko": {
+      "id": "stux@stux.ai",
+      "strict_min_version": "58.0"
+    }
+  }
+}
+  
