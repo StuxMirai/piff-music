@@ -18,7 +18,7 @@ function getNowPlaying() {
 
 setInterval(() => {
     const nowPlaying = getNowPlaying();
-    console.log("Now Playing:", nowPlaying);
+    // console.log("Now Playing:", nowPlaying);
 
     fetch("http://localhost:8080/webhook", {
         method: "POST",

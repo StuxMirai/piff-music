@@ -44,7 +44,7 @@ const htmlTemplate = `
             align-items: center;
         }
         .now-playing {
-            background-color: rgba(230, 230, 250, 0.7);
+            background-color: black;
             border-radius: 15px;
             padding: 20px;
             width: 80%;
@@ -178,9 +178,11 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mu.Lock()
-	currentTrack = newTrack
-	mu.Unlock()
+	if newTrack.SongName != "" && newTrack.Artist != "" {
+		mu.Lock()
+		currentTrack = newTrack
+		mu.Unlock()
+	}
 
 	w.WriteHeader(http.StatusOK)
 }
