@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "PiffMusic",
-  "version": "0.2",
+  "version": "0.3",
   "description": "Scrapes youtube music for now playing information and sends to local webhook.",
   "icons": {
     "48": "icons/stuxpup.png",
@@ -10,14 +10,16 @@
   "content_scripts": [
     {
       "matches": ["*://music.youtube.com/*"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
   ],
+  "background": {
+    "scripts": ["background.js"]
+  },
 
   "permissions": [
-    "activeTab",
-    "<all_urls>",
-    "webRequest"
+    "http://localhost:8080/*"
   ],
   "browser_specific_settings": {   
     "gecko": {

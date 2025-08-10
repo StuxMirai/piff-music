@@ -1,54 +1,53 @@
 # Youtube Music Now Playing Display
 
-This tool allows you to display your currently playing music from Youtube Music in your OBS stream. It consists of a browser extension and a local server that work together to show real-time "Now Playing" information.
+This tool displays your currently playing music from YouTube Music in OBS. It consists of:
+- A Firefox add-on that scrapes the now-playing info from `music.youtube.com`
+- A local Windows executable that hosts a widget at `http://localhost:8080` for OBS
 
-## Setup Instructions
+## Install the Firefox Add-on
 
-### Step 1: Install the Browser Extension
+- Install from AMO: [PiffMusic (Firefox Add-on)](https://addons.mozilla.org/en-US/firefox/addon/piffmusic/). Once installed, it will automatically run on `music.youtube.com`.
 
-1. Visit the [PiffMusic Firefox Add-on](https://addons.mozilla.org/en-US/firefox/addon/piffmusic/) page
-2. Click "Add to Firefox" to install the extension
-3. After installation, you should see the Piff Music icon in your browser toolbar
+## Download and Run the Windows EXE
 
-### Step 2: Set Up the Local Server
+- Download the latest `piff-music-windows-*.exe` from the [GitHub Releases](https://github.com/StuxMirai/piff-music/releases).
+- Double-click the EXE to run it.
+- You should see a console window with: `Server is running on http://localhost:8080`.
 
-1. Download and install [Go](https://golang.org/dl/) if you haven't already
-2. Click the green "Code" button above and select "Download ZIP"
-3. Extract the downloaded ZIP file to a location of your choice
-4. Open a terminal/command prompt
-5. Navigate to the extracted folder using the `cd` command, for example:
-   ```bash
-   cd C:\Users\YourName\Downloads\PiffMusic-main
-   ```
-6. Run the following command to compile the server:
-   ```bash
-   go build -o PiffMusic.exe main.go
-   ```
-7. Copy or move PiffMusic.exe to your Desktop
-8. Double-click PiffMusic.exe on your Desktop to start the server
-9. You should see the message "Server is running on http://localhost:8080"
+Notes:
+- Keep this EXE running while streaming. Close it to stop the widget.
+- The EXE also proxies and caches album art to avoid rate limits.
 
-### Step 3: Add to OBS
+## Add the Widget to OBS
 
 1. Open OBS Studio
-2. In your desired scene, add a new "Browser" source
-3. Configure the Browser source with these settings:
-   - URL: `http://localhost:8080`
-   - Width: 1920 (recommended, adjust as needed)
-   - Height: 1080 (recommended, adjust as needed)
-4. Click "OK" to add the source
+2. Add a new Source → Browser
+3. Set URL to `http://localhost:8080`
+4. Recommended size: Width 1280–1920, Height 720–1080 (adjust to your scene)
+5. Press OK
 
-## Usage
+The widget will show song title, artist, a progress bar, and blurred album art with a subtle edge fade.
 
-1. Make sure the local server is running (`PiffMusic.exe`)
-2. Play music on Youtube Music in Firefox
-3. The "Now Playing" information will automatically update in your OBS scene
+## How It Works
 
-## Troubleshooting
+- The add-on posts now-playing data to `http://localhost:8080/webhook` once per second (title, artist, time, album art URL)
+- The EXE stores the latest payload and serves a live-updating widget at `/`
+- Album art is fetched once by the EXE and served locally at `/album-art` for stability
 
-- If no track information appears, ensure:
-  - The Firefox extension is installed and active
-  - The local server is running
-  - You're playing music on Youtube Music
-  - The browser source in OBS is properly configured
-  - Only use one tab of Youtube Music at a time
+## Development
+
+- Run the server locally (Go):
+  ```bash
+  go run .
+  ```
+- Mock sender:
+  ```bash
+  go run mock/mock.go
+  ```
+- Load the add-on temporarily for development:
+  - Firefox → about:debugging → This Firefox → Load Temporary Add-on → select `piffmusic/manifest.json`
+
+## Releases
+
+- GitHub Actions builds Windows x64/ARM64 EXEs and signs the Firefox add-on.
+- Releases are named from `piffmusic/manifest.json` version.
