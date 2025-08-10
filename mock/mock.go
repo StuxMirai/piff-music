@@ -14,10 +14,14 @@ type NowPlaying struct {
 	Artist           string `json:"artist"`
 	CurrentTimestamp string `json:"current_timestamp"`
 	EndTimestamp     string `json:"end_timestamp"`
+    AlbumArtURL      string `json:"album_art_url"`
 }
 
 var songs = []string{"Bohemian Rhapsody", "Stairway to Heaven", "Imagine", "Smells Like Teen Spirit", "Billie Jean"}
 var artists = []string{"Queen", "Led Zeppelin", "John Lennon", "Nirvana", "Michael Jackson"}
+var art = []string{
+    "https://i.imgur.com/SGP2XjL.jpeg",
+}
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
@@ -25,15 +29,16 @@ func main() {
 	for {
 		track := generateRandomTrack()
 		sendTrackData(track)
-		time.Sleep(1 * time.Second) // Update more frequently
+		time.Sleep(1 * time.Second)
 	}
 }
 
 func generateRandomTrack() NowPlaying {
 	songIndex := rand.Intn(len(songs))
 	artistIndex := rand.Intn(len(artists))
+    artIndex := rand.Intn(len(art))
 
-	totalSeconds := rand.Intn(300) + 60 // Random duration between 1 and 6 minutes
+	totalSeconds := rand.Intn(300) + 60
 	currentSeconds := rand.Intn(totalSeconds)
 
 	endTimestamp := fmt.Sprintf("%02d:%02d", totalSeconds/60, totalSeconds%60)
@@ -43,7 +48,8 @@ func generateRandomTrack() NowPlaying {
 		SongName:         songs[songIndex],
 		Artist:           artists[artistIndex],
 		CurrentTimestamp: currentTimestamp,
-		EndTimestamp:     endTimestamp,
+        EndTimestamp:     endTimestamp,
+        AlbumArtURL:      art[artIndex],
 	}
 }
 
@@ -61,8 +67,8 @@ func sendTrackData(track NowPlaying) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK {
-		fmt.Printf("Sent: %s by %s (%s)\n", track.SongName, track.Artist, track.CurrentTimestamp)
+    if resp.StatusCode == http.StatusOK {
+        fmt.Printf("Sent: %s by %s (%s) [art=%s]\n", track.SongName, track.Artist, track.CurrentTimestamp, track.AlbumArtURL)
 	} else {
 		fmt.Printf("Failed to send data. Status code: %d\n", resp.StatusCode)
 	}
