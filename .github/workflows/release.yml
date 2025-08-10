@@ -24,13 +24,7 @@ jobs:
       - name: Derive version from manifest.json
         id: version
         run: |
-          TAG=$(python3 - <<'PY'
-import json
-with open('piffmusic/manifest.json') as f:
-    v = json.load(f)['version']
-print('v'+v)
-PY
-          )
+          TAG="v$(jq -r .version piffmusic/manifest.json)"
           echo "TAG=$TAG" >> $GITHUB_ENV
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "Using tag: $TAG"
