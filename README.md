@@ -2,7 +2,7 @@
 
 This tool displays your currently playing music from YouTube Music in OBS. It consists of:
 - A Firefox add-on that scrapes the now-playing info from `music.youtube.com`
-- A local Windows executable that hosts a widget at `http://localhost:8080` for OBS
+- A local Windows executable that hosts a widget at `http://localhost:17890` for OBS
 
 ## Install the Firefox Add-on
 
@@ -12,7 +12,7 @@ This tool displays your currently playing music from YouTube Music in OBS. It co
 
 - Download the latest `piff-music-windows-*.exe` from the [GitHub Releases](https://github.com/StuxMirai/piff-music/releases).
 - Double-click the EXE to run it.
-- You should see a console window with: `Server is running on http://localhost:8080`.
+- You should see a console window with: `Server is running on http://localhost:17890`.
 
 Notes:
 - Keep this EXE running while streaming. Close it to stop the widget.
@@ -22,7 +22,7 @@ Notes:
 
 1. Open OBS Studio
 2. Add a new Source → Browser
-3. Set URL to `http://localhost:8080`
+3. Set URL to `http://localhost:17890`
 4. Recommended size: Width 1280–1920, Height 720–1080 (adjust to your scene)
 5. Press OK
 
@@ -30,7 +30,7 @@ The widget will show song title, artist, a progress bar, and blurred album art w
 
 ## How It Works
 
-- The add-on posts now-playing data to `http://localhost:8080/webhook` once per second (title, artist, time, album art URL)
+- The add-on posts now-playing data to `http://localhost:17890/webhook` once per second (title, artist, time, album art URL)
 - The EXE stores the latest payload and serves a live-updating widget at `/`
 - Album art is fetched once by the EXE and served locally at `/album-art` for stability
 

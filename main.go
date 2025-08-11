@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-    "io"
+	"io"
 	"log"
 	"net/http"
-    "net/url"
-    "strings"
-    "time"
+	"net/url"
+	"strings"
 	"sync"
+	"time"
 )
 
 type NowPlaying struct {
@@ -18,20 +18,20 @@ type NowPlaying struct {
 	Artist           string `json:"artist"`
 	CurrentTimestamp string `json:"current_timestamp"`
 	EndTimestamp     string `json:"end_timestamp"`
-    AlbumArtURL      string `json:"album_art_url"`
-    AlbumArtVersion  int    `json:"album_art_version,omitempty"`
-    CurrentSeconds   int    `json:"current_seconds,omitempty"`
-    EndSeconds       int    `json:"end_seconds,omitempty"`
+	AlbumArtURL      string `json:"album_art_url"`
+	AlbumArtVersion  int    `json:"album_art_version,omitempty"`
+	CurrentSeconds   int    `json:"current_seconds,omitempty"`
+	EndSeconds       int    `json:"end_seconds,omitempty"`
 }
 
 var (
 	currentTrack NowPlaying
 	mu           sync.RWMutex
 
-    currentArtURL         string
-    currentArtBytes       []byte
-    currentArtContentType string
-    currentArtVersion     int
+	currentArtURL         string
+	currentArtBytes       []byte
+	currentArtContentType string
+	currentArtVersion     int
 )
 
 const htmlTemplate = `
@@ -48,7 +48,7 @@ const htmlTemplate = `
             font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
             height: 100%;
             overflow: hidden;
-            background: #0b0b0b;
+            background: transparent;
         }
         .container {
             width: 100%;
@@ -56,11 +56,12 @@ const htmlTemplate = `
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: clamp(6px, 2vw, 16px);
         }
         .now-playing {
             position: relative;
             background-color: #000;
-            border-radius: 18px;
+            border-radius: clamp(12px, 2vw, 18px);
             padding: 0;
             width: 90%;
             max-width: 800px;
@@ -95,7 +96,7 @@ const htmlTemplate = `
         .content {
             position: relative;
             z-index: 2;
-            padding: 28px 28px 22px;
+            padding: clamp(16px, 4vw, 28px) clamp(16px, 4vw, 28px) clamp(12px, 3vw, 22px);
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -103,7 +104,7 @@ const htmlTemplate = `
             backdrop-filter: none;
         }
         .song-name {
-            font-size: 3em;
+            font-size: clamp(1.4rem, 5vw, 3rem);
             font-weight: bold;
             margin: 0;
             color: white;
@@ -117,7 +118,7 @@ const htmlTemplate = `
             will-change: transform;
         }
         .artist-name {
-            font-size: 1.25em;
+            font-size: clamp(1rem, 2.6vw, 1.5rem);
             color: white;
             margin: 10px 0;
             text-shadow: 
@@ -132,7 +133,7 @@ const htmlTemplate = `
         }
         .progress-bar {
             width: 100%;
-            height: 12px;
+            height: clamp(6px, 1.2vw, 12px);
             background-color: rgba(255, 255, 255, 0.35);
             border-radius: 5px;
             overflow: hidden;
@@ -153,7 +154,7 @@ const htmlTemplate = `
             100% { background-position: 200% 0; }
         }
         .timestamp {
-            font-size: 0.9em;
+            font-size: clamp(0.8rem, 2vw, 0.95rem);
             color: white;
             text-shadow: 
                 -1px -1px 0 #000,
@@ -194,6 +195,11 @@ const htmlTemplate = `
     </div>
 
     <script>
+        function onResize() {
+            // Re-evaluate marquee when layout changes
+            applyMarqueeIfOverflow('songName');
+            applyMarqueeIfOverflow('artistName');
+        }
         function updateNowPlaying() {
             fetch('/now-playing')
                 .then(response => response.json())
@@ -391,6 +397,7 @@ const htmlTemplate = `
         }
         updateNowPlaying();
         setInterval(updateNowPlaying, 1000);
+        window.addEventListener('resize', onResize);
     </script>
 </body>
 </html>
@@ -408,26 +415,26 @@ func main() {
 	http.HandleFunc("/webhook", webhookHandler)
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/now-playing", nowPlayingHandler)
-    http.HandleFunc("/album-art", albumArtHandler)
+	http.HandleFunc("/album-art", albumArtHandler)
 
-	fmt.Println("Server is running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println("Server is running on http://localhost:17890")
+	log.Fatal(http.ListenAndServe(":17890", nil))
 }
 
 func webhookHandler(w http.ResponseWriter, r *http.Request) {
-    // CORS preflight
-    if r.Method == http.MethodOptions {
-        w.Header().Set("Access-Control-Allow-Origin", "*")
-        w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-        w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-        w.WriteHeader(http.StatusNoContent)
-        return
-    }
-    if r.Method != http.MethodPost {
-        w.Header().Set("Access-Control-Allow-Origin", "*")
-        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-        return
-    }
+	// CORS preflight
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if r.Method != http.MethodPost {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
 	var newTrack NowPlaying
 	err := json.NewDecoder(r.Body).Decode(&newTrack)
@@ -436,18 +443,18 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    if newTrack.SongName != "" && newTrack.Artist != "" {
-        mu.Lock()
-        urlChanged := newTrack.AlbumArtURL != "" && newTrack.AlbumArtURL != currentArtURL
-        currentTrack = newTrack
-        mu.Unlock()
-        if urlChanged {
-            go fetchAndCacheAlbumArt(newTrack.AlbumArtURL)
-        }
-    }
+	if newTrack.SongName != "" && newTrack.Artist != "" {
+		mu.Lock()
+		urlChanged := newTrack.AlbumArtURL != "" && newTrack.AlbumArtURL != currentArtURL
+		currentTrack = newTrack
+		mu.Unlock()
+		if urlChanged {
+			go fetchAndCacheAlbumArt(newTrack.AlbumArtURL)
+		}
+	}
 
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.WriteHeader(http.StatusOK)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.WriteHeader(http.StatusOK)
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -462,119 +469,119 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 func nowPlayingHandler(w http.ResponseWriter, r *http.Request) {
 	mu.RLock()
-    defer mu.RUnlock()
+	defer mu.RUnlock()
 
 	w.Header().Set("Content-Type", "application/json")
-    // Include current art version so client can bust cache
-    out := currentTrack
-    out.AlbumArtVersion = currentArtVersion
-    json.NewEncoder(w).Encode(out)
+	// Include current art version so client can bust cache
+	out := currentTrack
+	out.AlbumArtVersion = currentArtVersion
+	json.NewEncoder(w).Encode(out)
 }
 
 func albumArtHandler(w http.ResponseWriter, r *http.Request) {
-    mu.RLock()
-    bytes := currentArtBytes
-    ctype := currentArtContentType
-    mu.RUnlock()
+	mu.RLock()
+	bytes := currentArtBytes
+	ctype := currentArtContentType
+	mu.RUnlock()
 
-    if len(bytes) == 0 {
-        http.NotFound(w, r)
-        return
-    }
-    if ctype == "" {
-        ctype = "image/jpeg"
-    }
-    w.Header().Set("Content-Type", ctype)
-    // Ensure the browser refetches when version changes via query param
-    w.Header().Set("Cache-Control", "no-store, must-revalidate")
-    w.Write(bytes)
+	if len(bytes) == 0 {
+		http.NotFound(w, r)
+		return
+	}
+	if ctype == "" {
+		ctype = "image/jpeg"
+	}
+	w.Header().Set("Content-Type", ctype)
+	// Ensure the browser refetches when version changes via query param
+	w.Header().Set("Cache-Control", "no-store, must-revalidate")
+	w.Write(bytes)
 }
 
 func fetchAndCacheAlbumArt(src string) {
-    normalized := normalizeGoogleImageSize(src)
-    // Try up to 3 sizes: preferred -> 800 -> 544
-    candidates := []string{normalized, replaceSize(normalized, 800), replaceSize(normalized, 544)}
+	normalized := normalizeGoogleImageSize(src)
+	// Try up to 3 sizes: preferred -> 800 -> 544
+	candidates := []string{normalized, replaceSize(normalized, 800), replaceSize(normalized, 544)}
 
-    client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: 10 * time.Second}
 
-    for _, u := range candidates {
-        req, err := http.NewRequest("GET", u, nil)
-        if err != nil {
-            continue
-        }
-        // Spoof headers to match browser context
-        req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0")
-        req.Header.Set("Accept", "image/avif,image/webp,image/apng,image/*,*/*;q=0.8")
-        req.Header.Set("Referer", "https://music.youtube.com/")
+	for _, u := range candidates {
+		req, err := http.NewRequest("GET", u, nil)
+		if err != nil {
+			continue
+		}
+		// Spoof headers to match browser context
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0")
+		req.Header.Set("Accept", "image/avif,image/webp,image/apng,image/*,*/*;q=0.8")
+		req.Header.Set("Referer", "https://music.youtube.com/")
 
-        resp, err := client.Do(req)
-        if err != nil {
-            continue
-        }
-        func() {
-            defer resp.Body.Close()
-            if resp.StatusCode != http.StatusOK {
-                return
-            }
-            data, err := io.ReadAll(resp.Body)
-            if err != nil || len(data) == 0 {
-                return
-            }
-            mu.Lock()
-            currentArtURL = src
-            currentArtBytes = data
-            currentArtContentType = resp.Header.Get("Content-Type")
-            currentArtVersion++
-            mu.Unlock()
-        }()
-        // If we were successful, break
-        mu.RLock()
-        ok := len(currentArtBytes) > 0
-        mu.RUnlock()
-        if ok {
-            return
-        }
-    }
+		resp, err := client.Do(req)
+		if err != nil {
+			continue
+		}
+		func() {
+			defer resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				return
+			}
+			data, err := io.ReadAll(resp.Body)
+			if err != nil || len(data) == 0 {
+				return
+			}
+			mu.Lock()
+			currentArtURL = src
+			currentArtBytes = data
+			currentArtContentType = resp.Header.Get("Content-Type")
+			currentArtVersion++
+			mu.Unlock()
+		}()
+		// If we were successful, break
+		mu.RLock()
+		ok := len(currentArtBytes) > 0
+		mu.RUnlock()
+		if ok {
+			return
+		}
+	}
 }
 
 func normalizeGoogleImageSize(raw string) string {
-    // If it's not a googleusercontent image, return as-is
-    u, err := url.Parse(raw)
-    if err != nil {
-        return raw
-    }
-    if !strings.Contains(u.Host, "googleusercontent.com") {
-        return raw
-    }
-    return replaceSize(raw, 800)
+	// If it's not a googleusercontent image, return as-is
+	u, err := url.Parse(raw)
+	if err != nil {
+		return raw
+	}
+	if !strings.Contains(u.Host, "googleusercontent.com") {
+		return raw
+	}
+	return replaceSize(raw, 800)
 }
 
 func replaceSize(raw string, size int) string {
-    // Replace w###-h### with desired size
-    if size <= 0 {
-        size = 544
-    }
-    s := raw
-    // common pattern
-    s = sizeRegexReplace(s, size)
-    return s
+	// Replace w###-h### with desired size
+	if size <= 0 {
+		size = 544
+	}
+	s := raw
+	// common pattern
+	s = sizeRegexReplace(s, size)
+	return s
 }
 
 func sizeRegexReplace(s string, size int) string {
-    // lightweight replace without regex package by splitting on '=' params
-    // If pattern w###-h### exists after '=', try to patch it
-    parts := strings.Split(s, "=")
-    if len(parts) == 2 {
-        suffix := parts[1]
-        // find existing size token
-        tokens := strings.Split(suffix, "-")
-        // overwrite first two tokens if they start with w or h
-        if len(tokens) >= 2 && strings.HasPrefix(tokens[0], "w") && strings.HasPrefix(tokens[1], "h") {
-            tokens[0] = fmt.Sprintf("w%d", size)
-            tokens[1] = fmt.Sprintf("h%d", size)
-            parts[1] = strings.Join(tokens, "-")
-            return strings.Join(parts, "=")
-        }
-    }
-    return s
+	// lightweight replace without regex package by splitting on '=' params
+	// If pattern w###-h### exists after '=', try to patch it
+	parts := strings.Split(s, "=")
+	if len(parts) == 2 {
+		suffix := parts[1]
+		// find existing size token
+		tokens := strings.Split(suffix, "-")
+		// overwrite first two tokens if they start with w or h
+		if len(tokens) >= 2 && strings.HasPrefix(tokens[0], "w") && strings.HasPrefix(tokens[1], "h") {
+			tokens[0] = fmt.Sprintf("w%d", size)
+			tokens[1] = fmt.Sprintf("h%d", size)
+			parts[1] = strings.Join(tokens, "-")
+			return strings.Join(parts, "=")
+		}
+	}
+	return s
 }

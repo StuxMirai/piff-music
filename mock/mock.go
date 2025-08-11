@@ -14,13 +14,13 @@ type NowPlaying struct {
 	Artist           string `json:"artist"`
 	CurrentTimestamp string `json:"current_timestamp"`
 	EndTimestamp     string `json:"end_timestamp"`
-    AlbumArtURL      string `json:"album_art_url"`
+	AlbumArtURL      string `json:"album_art_url"`
 }
 
 var songs = []string{"Bohemian Rhapsody", "Stairway to Heaven", "Imagine", "Smells Like Teen Spirit", "Billie Jean"}
 var artists = []string{"Queen", "Led Zeppelin", "John Lennon", "Nirvana", "Michael Jackson"}
 var art = []string{
-    "https://i.imgur.com/SGP2XjL.jpeg",
+	"https://i.imgur.com/SGP2XjL.jpeg",
 }
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 func generateRandomTrack() NowPlaying {
 	songIndex := rand.Intn(len(songs))
 	artistIndex := rand.Intn(len(artists))
-    artIndex := rand.Intn(len(art))
+	artIndex := rand.Intn(len(art))
 
 	totalSeconds := rand.Intn(300) + 60
 	currentSeconds := rand.Intn(totalSeconds)
@@ -48,8 +48,8 @@ func generateRandomTrack() NowPlaying {
 		SongName:         songs[songIndex],
 		Artist:           artists[artistIndex],
 		CurrentTimestamp: currentTimestamp,
-        EndTimestamp:     endTimestamp,
-        AlbumArtURL:      art[artIndex],
+		EndTimestamp:     endTimestamp,
+		AlbumArtURL:      art[artIndex],
 	}
 }
 
@@ -60,15 +60,15 @@ func sendTrackData(track NowPlaying) {
 		return
 	}
 
-	resp, err := http.Post("http://localhost:8080/webhook", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post("http://localhost:17890/webhook", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Println("Error sending data:", err)
 		return
 	}
 	defer resp.Body.Close()
 
-    if resp.StatusCode == http.StatusOK {
-        fmt.Printf("Sent: %s by %s (%s) [art=%s]\n", track.SongName, track.Artist, track.CurrentTimestamp, track.AlbumArtURL)
+	if resp.StatusCode == http.StatusOK {
+		fmt.Printf("Sent: %s by %s (%s) [art=%s]\n", track.SongName, track.Artist, track.CurrentTimestamp, track.AlbumArtURL)
 	} else {
 		fmt.Printf("Failed to send data. Status code: %d\n", resp.StatusCode)
 	}

@@ -111,7 +111,7 @@ function postNowPlaying() {
             current_seconds: nowPlaying.current_seconds,
             end_seconds: nowPlaying.end_seconds
         };
-        fetch("http://localhost:8080/webhook", {
+        fetch("http://localhost:17890/webhook", {
             method: "POST",
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)

@@ -4,7 +4,7 @@ try { console.log('PiffMusic background loaded'); } catch (_) {}
 (typeof browser !== 'undefined' ? browser : chrome).runtime.onMessage.addListener((msg) => {
   if (!msg || msg.type !== 'postNowPlaying' || !msg.payload) return;
   const payload = msg.payload;
-  return fetch('http://localhost:8080/webhook', {
+  return fetch('http://localhost:17890/webhook', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
